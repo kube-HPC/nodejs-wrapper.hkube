@@ -1,0 +1,13 @@
+{
+  "name": "nodejs-wrapper.hkube",
+  "version": "1.0.0",
+  "description": "nodejs-wrapper.hkube",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}
