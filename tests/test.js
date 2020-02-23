@@ -23,14 +23,19 @@ const storageFS = {
 
 const config = {
     socket: {
-        port: 3000,
+        port: 9876,
         host: 'localhost',
         protocol: 'ws',
-        url: null
+        url: null,
+        binary: process.env.WORKER_BINARY || false
     },
     algorithm: {
         path: 'tests/mocks/algorithm',
         entryPoint: 'index.js'
+    },
+    capabilities: {
+        storageProtocols: 'byRaw,byRef',
+        encodingProtocols: 'json,bson'
     },
     storage: {
         type: process.env.DEFAULT_STORAGE || 's3',
@@ -128,9 +133,10 @@ describe('Tests', () => {
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
             algorunner.loadAlgorithm({ path });
-            algorunner.connectToWorker(config.socket);
+            algorunner.connectToWorker(config);
             await algorunner.initStorage(config.storage);
             const jobId = 'jobId:' + uuid();
+            const taskId = 'taskId:' + uuid();
             const link = await storageManager.hkube.put({ jobId, taskId: 'taskId:' + uuid(), data: { data: { engine: input[0] } } });
             const link2 = await storageManager.hkube.put({ jobId, taskId: 'taskId:' + uuid(), data: { myValue: input[1] } });
             const spy = sinon.spy(algorunner, "_sendCommand");
@@ -140,12 +146,18 @@ describe('Tests', () => {
                 'guid-6': { storageInfo: link2, path: 'myValue' }
             };
             const data = {
+                jobId,
+                taskId,
                 input: newInput,
-                storage
+                nodeName: 'green',
+                storage,
+                info: {
+                    savePaths: ['green']
+                }
             }
             algorunner._wsc.emit(messages.incoming.initialize, data)
             algorunner._wsc.emit(messages.incoming.start, data)
-            await delay(1000);
+            await delay(10000);
             const calls = spy.getCalls();
             expect(spy.calledThrice).to.equal(true);
             expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
