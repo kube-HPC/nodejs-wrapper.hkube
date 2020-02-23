@@ -123,7 +123,7 @@ describe('Tests', () => {
         });
     });
     describe('Storage', () => {
-        it.only('should call initialized', async () => {
+        it('should call initialized', async () => {
             const algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
