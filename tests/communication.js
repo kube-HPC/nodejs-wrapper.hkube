@@ -30,11 +30,13 @@ const data2 = {
 }
 
 
-describe('Getting data from by path', () => {
+describe.only('Getting data from by path', () => {
     let ds;
     let dr;
     afterEach('close sockets', () => {
-        ds.close();
+        if (ds != null) {
+            ds.close();
+        }
     })
     it('Getting data by path as json', async () => {
         ds = new DataServer({ port: config.port });
@@ -82,8 +84,17 @@ describe('Getting data from by path', () => {
         expect(reply.message).eq(consts.notAvailable);
         expect(reply.reason).eq(`Current taskId is ${task2}`);
     });
+    it('Failing to get data when sending ended', async () => {
+        ds = new DataServer({ port: config.port });
+        ds.setSendingState(task1, data1);
+        ds.endSendingState();
+        dr = new DataRequest({ port: config.port, host: config.host, taskId: task1, dataPath: 'level1' });
+        reply = await dr.invoke();
+        expect(reply.message).eq(consts.notAvailable);
+        expect(reply.reason).eq(`Current taskId is null`);
+    });
 
-    it('Fainling to get data in path that does not exist', async () => {
+    it('Failing to get data in path that does not exist', async () => {
         ds = new DataServer({ port: config.port });
         ds.setSendingState(task1, data1);
         const noneExisting = 'noneExisting';
@@ -93,8 +104,14 @@ describe('Getting data from by path', () => {
         expect(reply.reason).eq(`${noneExisting} does not exist in data`);
     });
 
-
+    it('Timing out when there is no server side', async () => {
+        const noneExisting = 'noneExisting';
+        dr = new DataRequest({ port: config.port, host: config.host, taskId: task1, dataPath: noneExisting });
+        ds = null;
+        const reply = await dr.invoke();
+        expect(reply.message).eq(consts.notAvailable);
+        expect(reply.reason).eq(`server ${config.host}:${config.port} unreachable`);
+    });
 }
-
 );
 
