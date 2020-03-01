@@ -37,19 +37,18 @@ const config = {
         storageProtocols: 'byRaw,byRef',
         encodingProtocols: 'json,bson'
     },
-    storage: {
-        type: process.env.DEFAULT_STORAGE || 's3',
-        clusterName: process.env.CLUSTER_NAME || 'local',
-        enableCache: true,
-        adapters: {
-            s3: {
-                connection: storageS3,
-                moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
-            },
-            fs: {
-                connection: storageFS,
-                moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
-            }
+    algorithmDiscovery: {
+        host: process.env.POD_NAME || '127.0.0.1',
+        port: process.env.DISCOVERY_PORT || 9020,
+        binary: true
+    },
+    clusterName: process.env.CLUSTER_NAME || 'local',
+    defaultStorage: process.env.DEFAULT_STORAGE || 'fs',
+    enableCache: true,
+    storageAdapters: {
+        fs: {
+            connection: storageFS,
+            moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
         }
     }
 }
@@ -63,6 +62,7 @@ describe('Tests', () => {
         });
         mockery.registerSubstitute('./websocket/ws', `${process.cwd()}/tests/stubs/ws.js`);
         Algorunner = require('../index');
+        await storageManager.init(config);
     })
     describe('loadAlgorithm', () => {
         it('should failed to load algorithm with no path', async () => {
@@ -128,13 +128,14 @@ describe('Tests', () => {
         });
     });
     describe('Storage', () => {
-        it('should call initialized', async () => {
+        it.only('should call initialized', async () => {
             const algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
             algorunner.loadAlgorithm({ path });
             algorunner.connectToWorker(config);
-            await algorunner.initStorage(config.storage);
+            await algorunner.initStorage(config);
+            algorunner.initDataServer(config);
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
             const link = await storageManager.hkube.put({ jobId, taskId: 'taskId:' + uuid(), data: { data: { engine: input[0] } } });

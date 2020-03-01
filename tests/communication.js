@@ -30,7 +30,7 @@ const data2 = {
 }
 
 
-describe.only('Getting data from by path', () => {
+describe('Getting data from by path', () => {
     let ds;
     let dr;
     afterEach('close sockets', () => {
