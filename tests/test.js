@@ -9,38 +9,27 @@ const delay = d => new Promise(r => setTimeout(r, d));
 const cwd = process.cwd();
 const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
 
-const storageS3 = {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    endpoint: process.env.S3_ENDPOINT_URL,
-    binary: !!process.env.STORAGE_BINARY
-};
-
 const storageFS = {
     baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
     binary: !!process.env.STORAGE_BINARY
 };
 
 const config = {
+    storage: process.env.WORKER_STORAGE || 'byRaw',
+    encoding: process.env.WORKER_ENCODING || 'bson',
     socket: {
         port: 9876,
         host: 'localhost',
         protocol: 'ws',
-        url: null,
-        binary: process.env.WORKER_BINARY || false
+        url: null
     },
     algorithm: {
         path: 'tests/mocks/algorithm',
         entryPoint: 'index.js'
     },
-    capabilities: {
-        storageProtocols: 'byRaw,byRef',
-        encodingProtocols: 'json,bson'
-    },
     algorithmDiscovery: {
         host: process.env.POD_NAME || '127.0.0.1',
-        port: process.env.DISCOVERY_PORT || 9020,
-        binary: true
+        port: process.env.DISCOVERY_PORT || 9020
     },
     clusterName: process.env.CLUSTER_NAME || 'local',
     defaultStorage: process.env.DEFAULT_STORAGE || 'fs',
