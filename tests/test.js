@@ -16,12 +16,12 @@ const storageFS = {
 
 const config = {
     storage: process.env.WORKER_STORAGE || 'byRaw',
-    encoding: process.env.WORKER_ENCODING || 'bson',
     socket: {
         port: 9876,
         host: 'localhost',
         protocol: 'ws',
-        url: null
+        url: null,
+        encoding: process.env.WORKER_ENCODING || 'bson'
     },
     algorithm: {
         path: 'tests/mocks/algorithm',
