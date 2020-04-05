@@ -52,6 +52,7 @@ describe('Tests', () => {
         });
         mockery.registerSubstitute('./websocket/ws', `${process.cwd()}/tests/stubs/ws.js`);
         Algorunner = require('../index');
+        dataAdapter.init(config)
     })
     describe('loadAlgorithm', () => {
         it('should failed to load algorithm with no path', async () => {
@@ -98,7 +99,7 @@ describe('Tests', () => {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].command).to.equal(messages.outgoing.initialized);
         });
-        it('should call initialized', async () => {
+        it('should call all events', async () => {
             const algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
@@ -128,7 +129,7 @@ describe('Tests', () => {
         });
     });
     describe('Storage', () => {
-        it('should call initialized', async () => {
+        it('should call get correct data', async () => {
             const algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
