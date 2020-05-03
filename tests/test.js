@@ -44,6 +44,7 @@ const config = {
 }
 
 describe('Tests', () => {
+    let algorunner = undefined;
     before(async function () {
         mockery.enable({
             useCleanCache: false,
@@ -54,25 +55,31 @@ describe('Tests', () => {
         Algorunner = require('../index');
         dataAdapter.init(config)
     })
+    after(() => {
+        if (algorunner._dataServer) {
+            algorunner._dataServer.close()
+        }
+
+    })
     describe('loadAlgorithm', () => {
         it('should failed to load algorithm with no path', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             algorunner.loadAlgorithm();
             expect(algorunner._loadAlgorithmError).to.equal('missing path');
         });
         it('should failed to load algorithm with empty path', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             algorunner.loadAlgorithm({ path: '' });
             expect(algorunner._loadAlgorithmError).to.equal('missing path');
         });
         it('should failed to load algorithm with invalid path', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             const path = 'invalid_path';
             algorunner.loadAlgorithm({ path });
             expect(algorunner._loadAlgorithmError).to.equal(`invalid path ${path}`);
         });
         it('should load algorithm with no entryPoint', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             const path = '/tests/mocks/algorithm';
             algorunner.loadAlgorithm({ path });
             expect(algorunner._algorithm).to.have.property('start');
@@ -80,18 +87,18 @@ describe('Tests', () => {
     });
     describe('connectToWorker', () => {
         it.skip('should set the ws url', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             algorunner.connectToWorker(config.socket);
             expect(algorunner._url).to.equal('ws://localhost:3000');
         });
         it('should set the algorithm input', async () => {
-            const algorunner = new Algorunner();
-            algorunner.connectToWorker(config.socket);
+            algorunner = new Algorunner();
+            algorunner.connectToWorker({ ...config.socket, 'algorithmDiscovery': config.algorithmDiscovery });
             algorunner._wsc.emit(messages.incoming.initialize, { input })
             expect(algorunner._input.input).to.eql(input);
         });
         it('should call initialized', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             algorunner.connectToWorker(config.socket);
             const spy = sinon.spy(algorunner, "_sendCommand");
             algorunner._wsc.emit(messages.incoming.initialize, { input })
@@ -99,8 +106,18 @@ describe('Tests', () => {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].command).to.equal(messages.outgoing.initialized);
         });
+        it('should call exit', async () => {
+            algorunner = new Algorunner();
+            algorunner.exitProcess = () => { }
+            await algorunner.connectToWorker({ ...config.socket, 'algorithmDiscovery': config.algorithmDiscovery });
+            const spy = sinon.spy(algorunner, "_exit");
+            algorunner._wsc.emit(messages.incoming.exit, { input })
+            const call = spy.getCalls()[0];
+            expect(spy.calledOnce).to.equal(true);
+            expect(call.args[0].command).to.equal(messages.outgoing.exit);
+        });
         it('should call all events', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
             algorunner.loadAlgorithm({ path });
@@ -130,7 +147,7 @@ describe('Tests', () => {
     });
     describe('Storage', () => {
         it('should call get correct data', async () => {
-            const algorunner = new Algorunner();
+            algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
             algorunner.loadAlgorithm({ path });
