@@ -19,8 +19,8 @@
   "author": "Hkube",
   "license": "MIT",
   "dependencies": {
-    "@hkube/encoding": "^1.0.8",
-    "@hkube/worker-data-adapter": "^1.0.1",
+    "@hkube/encoding": "^1.0.11",
+    "@hkube/worker-data-adapter": "^1.0.3",
     "ws": "^7.2.3"
   },
   "devDependencies": {
