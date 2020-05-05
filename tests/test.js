@@ -116,7 +116,7 @@ describe('Tests', () => {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].command).to.equal(messages.outgoing.exit);
         });
-        it('should call all events', async () => {
+        xit('should call all events', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
@@ -146,7 +146,7 @@ describe('Tests', () => {
         });
     });
     describe('Storage', () => {
-        it('should call get correct data', async () => {
+        xit('should call get correct data', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
