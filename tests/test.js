@@ -26,7 +26,7 @@ const config = {
         path: 'tests/mocks/algorithm',
         entryPoint: 'index.js'
     },
-    algorithmDiscovery: {
+    discovery: {
         host: process.env.POD_NAME || '127.0.0.1',
         port: process.env.DISCOVERY_PORT || 9020,
         encoding: 'bson'
@@ -93,7 +93,7 @@ describe('Tests', () => {
         });
         it('should set the algorithm input', async () => {
             algorunner = new Algorunner();
-            algorunner.connectToWorker({ ...config.socket, 'algorithmDiscovery': config.algorithmDiscovery });
+            algorunner.connectToWorker({ ...config.socket, discovery: config.discovery });
             algorunner._wsc.emit(messages.incoming.initialize, { input })
             expect(algorunner._input.input).to.eql(input);
         });
@@ -109,7 +109,7 @@ describe('Tests', () => {
         it('should call exit', async () => {
             algorunner = new Algorunner();
             algorunner.exitProcess = () => { }
-            await algorunner.connectToWorker({ ...config.socket, 'algorithmDiscovery': config.algorithmDiscovery });
+            await algorunner.connectToWorker({ ...config.socket, discovery: config.discovery });
             const spy = sinon.spy(algorunner, "_exit");
             algorunner._wsc.emit(messages.incoming.exit, { input })
             const call = spy.getCalls()[0];
