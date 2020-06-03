@@ -30,6 +30,7 @@ module.exports = {
         "object-curly-newline": "off",
         "newline-per-chained-call": "off",
         "arrow-body-style": "off",
+        "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "indent": ["warn", 4, { "SwitchCase": 1 }]
