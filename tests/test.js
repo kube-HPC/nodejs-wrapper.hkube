@@ -5,6 +5,7 @@ const uuid = require('uuid/v4');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const messages = require('../lib/consts/messages');
 let Algorunner;
+
 const delay = d => new Promise(r => setTimeout(r, d));
 const cwd = process.cwd();
 const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
@@ -40,6 +41,15 @@ const config = {
             connection: storageFS,
             moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
         }
+    },
+    tracer: {
+        tracerConfig: {
+            serviceName: process.env.ALGORITHM_TYPE || "algorithm",
+            reporter: {
+                agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
+                agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
+            }
+        }
     }
 }
 
@@ -55,8 +65,10 @@ describe('Tests', () => {
         Algorunner = require('../index');
         dataAdapter.init(config)
     })
-    after(() => {
+    afterEach(async () => {
         if (algorunner._dataServer) {
+            await algorunner._dataServer.waitTillServingIsDone()
+            await delay(100)
             algorunner._dataServer.close()
         }
 
@@ -88,18 +100,18 @@ describe('Tests', () => {
     describe('connectToWorker', () => {
         it.skip('should set the ws url', async () => {
             algorunner = new Algorunner();
-            algorunner.connectToWorker(config.socket);
+            algorunner.connectToWorker(config);
             expect(algorunner._url).to.equal('ws://localhost:3000');
         });
         it('should set the algorithm input', async () => {
             algorunner = new Algorunner();
-            algorunner.connectToWorker({ ...config.socket, discovery: config.discovery });
+            algorunner.connectToWorker(config);
             algorunner._wsc.emit(messages.incoming.initialize, { input })
             expect(algorunner._input.input).to.eql(input);
         });
         it('should call initialized', async () => {
             algorunner = new Algorunner();
-            algorunner.connectToWorker(config.socket);
+            algorunner.connectToWorker(config);
             const spy = sinon.spy(algorunner, "_sendCommand");
             algorunner._wsc.emit(messages.incoming.initialize, { input })
             const call = spy.getCalls()[0];
@@ -109,7 +121,7 @@ describe('Tests', () => {
         it('should call exit', async () => {
             algorunner = new Algorunner();
             algorunner.exitProcess = () => { }
-            await algorunner.connectToWorker({ ...config.socket, discovery: config.discovery });
+            await algorunner.connectToWorker(config);
             const spy = sinon.spy(algorunner, "_exit");
             algorunner._wsc.emit(messages.incoming.exit, { input })
             const call = spy.getCalls()[0];
