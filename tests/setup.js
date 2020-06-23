@@ -5,6 +5,8 @@ const storageFS = {
 };
 global.config = {
     storage: process.env.WORKER_STORAGE || 'byRaw',
+    storageMode: process.env.STORAGE_PROTOCOL || 'v2',
+
     socket: {
         port: 9876,
         host: 'localhost',
