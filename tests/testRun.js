@@ -15,15 +15,15 @@ describe('run', () => {
         config = global.config;
     });
     afterEach(async () => {
-        if (algorunner._dataServer) {
+        if (algorunner && algorunner._dataServer) {
             await algorunner._dataServer.waitTillServingIsDone()
             await delay(100)
             algorunner._dataServer.close()
         }
     })
     it('should init without parameters', () => {
-        algorunner = Algorunner.run();
-        expect(algorunner._debugMode).to.be.false;
+        expect(() => { Algorunner.run() }).to.throw()
+
     });
     it('should init with callbacks', () => {
         const callbacks = {
@@ -31,7 +31,7 @@ describe('run', () => {
                 console.log('start')
             }
         }
-        algorunner = Algorunner.run({ callbacks });
+        algorunner = Algorunner.run(callbacks);
         expect(algorunner._debugMode).to.be.false
     });
     it('should send data through socket', async () => {
@@ -45,7 +45,7 @@ describe('run', () => {
             }
         }
 
-        algorunner = Algorunner.run({ callbacks });
+        algorunner = Algorunner.run(callbacks);
         expect(algorunner._debugMode).to.be.false
 
         const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
