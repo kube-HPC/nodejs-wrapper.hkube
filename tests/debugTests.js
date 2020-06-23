@@ -17,7 +17,7 @@ describe('debug mode', () => {
 
     it('should init in debug mode', () => {
         const algorunner = Algorunner.debug('ws://debugurl', null, { pathToAlgorithm: '/tests/mocks/algorithm' });
-        expect(algorunner._debugMode).to.be.true
+        expect(algorunner._options.storageMode).to.eql('v1')
     });
     it('should init in debug mode with callbacks', () => {
         const callbacks = {
@@ -26,7 +26,7 @@ describe('debug mode', () => {
             }
         }
         const algorunner = Algorunner.debug('ws://debugurl', callbacks);
-        expect(algorunner._debugMode).to.be.true
+        expect(algorunner._options.storageMode).to.eql('v1')
     });
     it('should send data through socket', async () => {
         const data = {
@@ -40,6 +40,7 @@ describe('debug mode', () => {
         }
 
         const algorunner = Algorunner.debug('ws://debugurl', callbacks);
+        expect(algorunner._options.storageMode).to.eql('v1')
         const spy = sinon.spy(algorunner, "_sendCommand");
         const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
         algorunner._wsc.emit(messages.incoming.initialize, { input })
