@@ -21,10 +21,6 @@ describe('run', () => {
             algorunner._dataServer.close()
         }
     })
-    it('should init without parameters', () => {
-        expect(() => { Algorunner.run() }).to.throw()
-
-    });
     it('should init with callbacks', () => {
         const callbacks = {
             start: (args) => {
