@@ -1,77 +1,28 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const mockery = require('mockery');
-const uuid = require('uuid/v4');
+const {v4: uuid} = require('uuid');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const messages = require('../lib/consts/messages');
-let Algorunner;
-
+const AlgorithmWS = require('../lib/websocket/ws');
 const delay = d => new Promise(r => setTimeout(r, d));
 const cwd = process.cwd();
 const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
+let algorunner;
 
-const storageFS = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
-};
-
-const config = {
-    storage: process.env.WORKER_STORAGE || 'byRaw',
-    socket: {
-        port: 9876,
-        host: 'localhost',
-        protocol: 'ws',
-        url: null,
-        encoding: process.env.WORKER_ENCODING || 'bson'
-    },
-    algorithm: {
-        path: 'tests/mocks/algorithm',
-        entryPoint: 'index.js'
-    },
-    discovery: {
-        host: process.env.POD_NAME || '127.0.0.1',
-        port: process.env.DISCOVERY_PORT || 9020,
-        encoding: 'bson'
-    },
-    clusterName: process.env.CLUSTER_NAME || 'local',
-    defaultStorage: process.env.DEFAULT_STORAGE || 'fs',
-    enableCache: true,
-    storageAdapters: {
-        fs: {
-            encoding: 'bson',
-            connection: storageFS,
-            moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
-        }
-    },
-    tracer: {
-        tracerConfig: {
-            serviceName: process.env.ALGORITHM_TYPE || "algorithm",
-            reporter: {
-                agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
-                agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
-            }
-        }
-    }
-}
-
+let config;
+let Algorunner
 describe('Tests', () => {
-    let algorunner = undefined;
-    before(async function () {
-        mockery.enable({
-            useCleanCache: false,
-            warnOnReplace: false,
-            warnOnUnregistered: false
-        });
-        mockery.registerSubstitute('./websocket/ws', `${process.cwd()}/tests/stubs/ws.js`);
-        Algorunner = require('../index');
-        dataAdapter.init(config)
-    })
+
+    before(() => {
+        Algorunner = global.Algorunner;
+        config = global.config;
+    });
     afterEach(async () => {
-        if (algorunner._dataServer) {
+        if (algorunner && algorunner._dataServer) {
             await algorunner._dataServer.waitTillServingIsDone()
             await delay(100)
             algorunner._dataServer.close()
         }
-
     })
     describe('loadAlgorithm', () => {
         it('should failed to load algorithm with no path', async () => {
@@ -98,10 +49,10 @@ describe('Tests', () => {
         });
     });
     describe('connectToWorker', () => {
-        it.skip('should set the ws url', async () => {
-            algorunner = new Algorunner();
-            algorunner.connectToWorker(config);
-            expect(algorunner._url).to.equal('ws://localhost:3000');
+        it('should set the ws url', async () => {
+            
+            const url = AlgorithmWS.createUrl(config);
+            expect(url).to.equal('ws://localhost:9876?encoding=bson&storage=v2');
         });
         it('should set the algorithm input', async () => {
             algorunner = new Algorunner();
@@ -128,7 +79,7 @@ describe('Tests', () => {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].command).to.equal(messages.outgoing.exit);
         });
-        xit('should call all events', async () => {
+        it('should call all events', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
@@ -158,7 +109,7 @@ describe('Tests', () => {
         });
     });
     describe('Storage', () => {
-        xit('should call get correct data', async () => {
+        it('should call get correct data', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithm';
@@ -166,8 +117,11 @@ describe('Tests', () => {
             await algorunner.connectToWorker(config);
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
-            const link = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), data: { data: { engine: input[0] } } });
-            const link2 = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), data: { myValue: input[1] } });
+            const encodedData = dataAdapter.encode({ data: { engine: input[0] } }, { customEncode: true });
+            const encodedData2 = dataAdapter.encode({ myValue: input[1] }, { customEncode: true });
+
+            const link = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), data: encodedData });
+            const link2 = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), data: encodedData2 });
             const newInput = ['$$guid-5', '$$guid-6', 'test-param', true, 12345];
             const storage = {
                 'guid-5': { storageInfo: link, path: 'data.engine' },
