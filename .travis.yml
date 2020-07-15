@@ -1,7 +1,7 @@
 sudo: required
 language: node_js
 node_js:
-  - "10"
+  - "14"
 branches:
   only:
     - master
@@ -26,7 +26,6 @@ after_success:
     else
       echo "version skiped!"
     fi
-  - snyk monitor
 deploy:
   skip_cleanup: true
   provider: npm
