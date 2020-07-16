@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const {v4: uuid} = require('uuid');
+const { uuid } = require('@hkube/uid');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const messages = require('../lib/consts/messages');
 const AlgorithmWS = require('../lib/websocket/ws');
@@ -50,7 +50,7 @@ describe('Tests', () => {
     });
     describe('connectToWorker', () => {
         it('should set the ws url', async () => {
-            
+
             const url = AlgorithmWS.createUrl(config);
             expect(url).to.equal('ws://localhost:9876?encoding=bson&storage=v2');
         });

@@ -27,7 +27,6 @@ after_success:
     else
       echo "version skipped!"
     fi
-  - snyk monitor
 deploy:
   skip_cleanup: true
   provider: npm

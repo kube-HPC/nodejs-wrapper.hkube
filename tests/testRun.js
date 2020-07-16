@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { v4: uuid } = require('uuid');
+const { uuid } = require('@hkube/uid');
 
 const messages = require('../lib/consts/messages');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
