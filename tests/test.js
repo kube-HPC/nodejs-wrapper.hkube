@@ -24,6 +24,16 @@ describe('Tests', () => {
             algorunner._dataServer.close()
         }
     })
+    describe('sanity',()=>{
+        it('test AsyncFunction', () => {
+            const asyncFunc = async ()=>({});
+            expect(asyncFunc.constructor.name).to.eql('AsyncFunction')
+        });
+        it('test named AsyncFunction', () => {
+            const asyncFunc = async function asyncFunc() {}
+            expect(asyncFunc.constructor.name).to.eql('AsyncFunction')
+        });
+    })
     describe('loadAlgorithm', () => {
         it('should failed to load algorithm with no path', async () => {
             algorunner = new Algorunner();
