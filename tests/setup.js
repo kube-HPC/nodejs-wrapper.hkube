@@ -21,6 +21,8 @@ global.config = {
     discovery: {
         host: process.env.POD_NAME || '127.0.0.1',
         port: process.env.DISCOVERY_PORT || 9020,
+        concurrency: 50,
+        timeout: 1000,
         encoding: 'bson'
     },
     clusterName: process.env.CLUSTER_NAME || 'local',
