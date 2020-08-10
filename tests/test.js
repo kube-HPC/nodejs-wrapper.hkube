@@ -4,6 +4,7 @@ const { uuid } = require('@hkube/uid');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const messages = require('../lib/consts/messages');
 const AlgorithmWS = require('../lib/websocket/ws');
+
 const delay = d => new Promise(r => setTimeout(r, d));
 const cwd = process.cwd();
 const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
@@ -24,13 +25,13 @@ describe('Tests', () => {
             algorunner._dataServer.close()
         }
     })
-    describe('sanity',()=>{
+    describe('sanity', () => {
         it('test AsyncFunction', () => {
-            const asyncFunc = async ()=>({});
+            const asyncFunc = async () => ({});
             expect(asyncFunc.constructor.name).to.eql('AsyncFunction')
         });
         it('test named AsyncFunction', () => {
-            const asyncFunc = async function asyncFunc() {}
+            const asyncFunc = async function asyncFunc() { }
             expect(asyncFunc.constructor.name).to.eql('AsyncFunction')
         });
     })
@@ -155,6 +156,58 @@ describe('Tests', () => {
             expect(algorunner._input.input[0]).to.eql(input[0]);
             expect(algorunner._input.input[1]).to.eql(input[1]);
         });
+
+        it('should not fail with many sockets', async () => {
+            algorunner = new Algorunner();
+            process.chdir(cwd);
+            const path = '/tests/mocks/algorithm';
+            algorunner.loadAlgorithm({ path });
+            await algorunner.connectToWorker(config);
+            const jobId = 'jobId:' + uuid();
+            const taskId = 'taskId:' + uuid();
+            const encodedData = dataAdapter.encode({ data: { engine: input[0] } }, { customEncode: true });
+            const saveTaskId = `taskId:${uuid()}`
+            const link = await dataAdapter.setData({ jobId, taskId: saveTaskId, data: encodedData });
+            const newInput = ['$$guid-5'];
+            const startPort = 19000;
+            const notExistDiscovery = {
+                discovery: {
+                    host: "127.0.0.1",
+                    port: "19020"
+                },
+                tasks: [saveTaskId],
+                // storageInfo: link,
+                path: 'data.engine'
+            };
+            const length = 1000;
+            const storage = {
+                'guid-5': [...Array(length)].map((a, i) => ({
+                    ...notExistDiscovery,
+                    discovery: {
+                        ...notExistDiscovery.discovery,
+                        port: `${startPort + i}`
+                    }
+                }))
+            };
+            const flatInput = dataAdapter.flatInput({ input: newInput, storage });
+            const data = {
+                jobId,
+                taskId,
+                input: newInput,
+                flatInput,
+                nodeName: 'green',
+                storage,
+                info: {
+                    savePaths: ['green']
+                }
+            }
+            algorunner._wsc.emit(messages.incoming.initialize, data)
+            algorunner._wsc.emit(messages.incoming.start, data)
+            await delay(20000);
+            expect(algorunner._input.input[0]).to.have.lengthOf(length)
+            expect(algorunner._input.input[0][0]).to.eql(input[0]);
+
+        }).timeout(21000);
     });
 });
 
