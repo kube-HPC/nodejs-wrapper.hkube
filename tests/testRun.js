@@ -1,18 +1,15 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { uuid } = require('@hkube/uid');
-
 const messages = require('../lib/consts/messages');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const delay = d => new Promise(r => setTimeout(r, d));
 
-let config;
 let Algorunner
 let algorunner;
 describe('run', () => {
     before(() => {
         Algorunner = global.Algorunner;
-        config = global.config;
     });
     afterEach(async () => {
         if (algorunner && algorunner._dataServer) {

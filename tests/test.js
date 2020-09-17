@@ -61,9 +61,8 @@ describe('Tests', () => {
     });
     describe('connectToWorker', () => {
         it('should set the ws url', async () => {
-
             const url = AlgorithmWS.createUrl(config);
-            expect(url).to.equal('ws://localhost:9876?encoding=bson&storage=v2');
+            expect(url).to.equal('ws://localhost:3000?encoding=bson&storage=v2');
         });
         it('should set the algorithm input', async () => {
             algorunner = new Algorunner();
@@ -98,9 +97,7 @@ describe('Tests', () => {
             await algorunner.connectToWorker(config);
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
-
             const spy = sinon.spy(algorunner, "_sendCommand");
-
             const data = {
                 jobId,
                 taskId,
@@ -156,7 +153,6 @@ describe('Tests', () => {
             expect(algorunner._input.input[0]).to.eql(input[0]);
             expect(algorunner._input.input[1]).to.eql(input[1]);
         });
-
         it('should not fail with many sockets', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
