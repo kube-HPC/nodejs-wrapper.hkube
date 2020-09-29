@@ -11,13 +11,6 @@ describe('run', () => {
     before(() => {
         Algorunner = global.Algorunner;
     });
-    afterEach(async () => {
-        if (algorunner && algorunner._dataServer) {
-            await algorunner._dataServer.waitTillServingIsDone()
-            await delay(100)
-            algorunner._dataServer.close()
-        }
-    })
     it('should init with callbacks', () => {
         const callbacks = {
             start: (args) => {
