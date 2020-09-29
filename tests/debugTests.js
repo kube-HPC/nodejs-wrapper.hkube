@@ -1,20 +1,15 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-
 const messages = require('../lib/consts/messages');
 
-let config;
 let Algorunner
 describe('debug mode', () => {
     before(() => {
         Algorunner = global.Algorunner;
-        config = global.config;
     });
-
     it('should fail without parameters', () => {
         expect(() => { Algorunner.debug() }).to.throw()
     });
-
     it('should init in debug mode', () => {
         const algorunner = Algorunner.debug('ws://debugurl', null, { pathToAlgorithm: '/tests/mocks/algorithm' });
         expect(algorunner._options.storageMode).to.eql('v1')

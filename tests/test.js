@@ -13,18 +13,10 @@ let algorunner;
 let config;
 let Algorunner
 describe('Tests', () => {
-
     before(() => {
         Algorunner = global.Algorunner;
         config = global.config;
     });
-    afterEach(async () => {
-        if (algorunner && algorunner._dataServer) {
-            await algorunner._dataServer.waitTillServingIsDone()
-            await delay(100)
-            algorunner._dataServer.close()
-        }
-    })
     describe('sanity', () => {
         it('test AsyncFunction', () => {
             const asyncFunc = async () => ({});
@@ -61,9 +53,8 @@ describe('Tests', () => {
     });
     describe('connectToWorker', () => {
         it('should set the ws url', async () => {
-
             const url = AlgorithmWS.createUrl(config);
-            expect(url).to.equal('ws://localhost:9876?encoding=bson&storage=v2');
+            expect(url).to.equal('ws://localhost:3000?encoding=bson&storage=v2');
         });
         it('should set the algorithm input', async () => {
             algorunner = new Algorunner();
@@ -98,9 +89,7 @@ describe('Tests', () => {
             await algorunner.connectToWorker(config);
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
-
             const spy = sinon.spy(algorunner, "_sendCommand");
-
             const data = {
                 jobId,
                 taskId,
@@ -128,11 +117,10 @@ describe('Tests', () => {
             await algorunner.connectToWorker(config);
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
-            const encodedData = dataAdapter.encode({ data: { engine: input[0] } }, { customEncode: true });
-            const encodedData2 = dataAdapter.encode({ myValue: input[1] }, { customEncode: true });
-
-            const link = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), data: encodedData });
-            const link2 = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), data: encodedData2 });
+            const encodedData = dataAdapter.encodeHeaderPayload({ data: { engine: input[0] } });
+            const encodedData2 = dataAdapter.encodeHeaderPayload({ myValue: input[1] });
+            const link = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), header: encodedData.header, data: encodedData.payload });
+            const link2 = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), header: encodedData2.header, data: encodedData2.payload });
             const newInput = ['$$guid-5', '$$guid-6', 'test-param', true, 12345];
             const storage = {
                 'guid-5': { storageInfo: link, path: 'data.engine' },
@@ -156,7 +144,6 @@ describe('Tests', () => {
             expect(algorunner._input.input[0]).to.eql(input[0]);
             expect(algorunner._input.input[1]).to.eql(input[1]);
         });
-
         it('should not fail with many sockets', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
@@ -179,7 +166,7 @@ describe('Tests', () => {
                 // storageInfo: link,
                 path: 'data.engine'
             };
-            const length = 1000;
+            const length = 50;
             const storage = {
                 'guid-5': [...Array(length)].map((a, i) => ({
                     ...notExistDiscovery,
@@ -203,11 +190,11 @@ describe('Tests', () => {
             }
             algorunner._wsc.emit(messages.incoming.initialize, data)
             algorunner._wsc.emit(messages.incoming.start, data)
-            await delay(20000);
+            await delay(2000);
             expect(algorunner._input.input[0]).to.have.lengthOf(length)
             expect(algorunner._input.input[0][0]).to.eql(input[0]);
 
-        }).timeout(21000);
+        }).timeout(10000);
     });
 });
 
