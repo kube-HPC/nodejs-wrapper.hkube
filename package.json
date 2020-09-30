@@ -23,7 +23,7 @@
     "@hkube/encoding": "^1.0.20",
     "@hkube/metrics": "^1.0.39",
     "@hkube/uid": "^1.0.4",
-    "@hkube/worker-data-adapter": "^1.0.17",
+    "@hkube/worker-data-adapter": "^1.0.18",
     "lodash.clonedeep": "^4.5.0",
     "ws": "^7.2.3"
   },
