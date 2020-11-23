@@ -1,0 +1,13 @@
+{
+  "name": "sort-alg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash.orderby": "^4.5.1"
+  },
+  "devDependencies": {}
+}
