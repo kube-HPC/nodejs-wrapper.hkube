@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const { uuid } = require('@hkube/uid');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
+const { once } = require('events');
 const messages = require('../lib/consts/messages');
 const AlgorithmWS = require('../lib/websocket/ws');
 
@@ -106,6 +107,115 @@ describe('Tests', () => {
             expect(calls[1].args[0].command).to.equal(messages.outgoing.started);
             expect(calls[2].args[0].command).to.equal(messages.outgoing.storing);
             expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
+        });
+
+        it('should start algorithm via codeApi', async () => {
+            algorunner = new Algorunner();
+            process.chdir(cwd);
+            const path = '/tests/mocks/algorithmCode';
+            algorunner.loadAlgorithm({ path });
+            await algorunner.connectToWorker(config);
+            const jobId = 'jobId:' + uuid();
+            const taskId = 'taskId:' + uuid();
+            const spy = sinon.spy(algorunner, "_sendCommand");
+            const data = {
+                jobId,
+                taskId,
+                input: [],
+                info: {},
+                nodeName: 'green'
+            }
+            algorunner._wsc._sender.on(messages.outgoing.error, () => {
+                expect.fail('got unexpected error')
+            })
+            algorunner._wsc.emit(messages.incoming.initialize, data)
+            const algorithmStarted = once(algorunner._wsc._sender, messages.outgoing.startAlgorithmExecution)
+            algorunner._wsc.emit(messages.incoming.start, data)
+            const [algorithmData] = await algorithmStarted
+            const { execId } = algorithmData.data
+            await delay(1000);
+            algorunner._wsc.emit(messages.incoming.execAlgorithmDone, { execId })
+            await delay(1000);
+            const calls = spy.getCalls();
+            expect(spy.callCount).to.equal(4);
+            expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
+            expect(calls[1].args[0].command).to.equal(messages.outgoing.started);
+            expect(calls[2].args[0].command).to.equal(messages.outgoing.storing);
+            expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
+            expect(algorunner._hkubeApi._executions[execId]).to.not.exist
+        });
+
+        it('should start stored pipeline via codeApi', async () => {
+            algorunner = new Algorunner();
+            process.chdir(cwd);
+            const path = '/tests/mocks/algorithmCode';
+            const entryPoint = 'indexPipe.js'
+            algorunner.loadAlgorithm({ path, entryPoint });
+            await algorunner.connectToWorker(config);
+            const jobId = 'jobId:' + uuid();
+            const taskId = 'taskId:' + uuid();
+            const spy = sinon.spy(algorunner, "_sendCommand");
+            const data = {
+                jobId,
+                taskId,
+                input: [],
+                info: {},
+                nodeName: 'green'
+            }
+            algorunner._wsc._sender.on(messages.outgoing.error, () => {
+                expect.fail('got unexpected error')
+            })
+            algorunner._wsc.emit(messages.incoming.initialize, data)
+            const algorithmStarted = once(algorunner._wsc._sender, messages.outgoing.startStoredSubPipeline)
+            algorunner._wsc.emit(messages.incoming.start, data)
+            const [algorithmData] = await algorithmStarted
+            const { subPipelineId } = algorithmData.data
+            await delay(1000);
+            algorunner._wsc.emit(messages.incoming.subPipelineDone, { subPipelineId })
+            await delay(1000);
+            const calls = spy.getCalls();
+            expect(spy.callCount).to.equal(4);
+            expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
+            expect(calls[1].args[0].command).to.equal(messages.outgoing.started);
+            expect(calls[2].args[0].command).to.equal(messages.outgoing.storing);
+            expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
+            expect(algorunner._hkubeApi._executions[subPipelineId]).to.not.exist
+        });
+        it('should start raw pipeline via codeApi', async () => {
+            algorunner = new Algorunner();
+            process.chdir(cwd);
+            const path = '/tests/mocks/algorithmCode';
+            const entryPoint = 'indexRawPipe.js'
+            algorunner.loadAlgorithm({ path, entryPoint });
+            await algorunner.connectToWorker(config);
+            const jobId = 'jobId:' + uuid();
+            const taskId = 'taskId:' + uuid();
+            const spy = sinon.spy(algorunner, "_sendCommand");
+            const data = {
+                jobId,
+                taskId,
+                input: [],
+                info: {},
+                nodeName: 'green'
+            }
+            algorunner._wsc._sender.on(messages.outgoing.error, () => {
+                expect.fail('got unexpected error')
+            })
+            algorunner._wsc.emit(messages.incoming.initialize, data)
+            const algorithmStarted = once(algorunner._wsc._sender, messages.outgoing.startRawSubPipeline)
+            algorunner._wsc.emit(messages.incoming.start, data)
+            const [algorithmData] = await algorithmStarted
+            const { subPipelineId } = algorithmData.data
+            await delay(1000);
+            algorunner._wsc.emit(messages.incoming.subPipelineDone, { subPipelineId })
+            await delay(1000);
+            const calls = spy.getCalls();
+            expect(spy.callCount).to.equal(4);
+            expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
+            expect(calls[1].args[0].command).to.equal(messages.outgoing.started);
+            expect(calls[2].args[0].command).to.equal(messages.outgoing.storing);
+            expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
+            expect(algorunner._hkubeApi._executions[subPipelineId]).to.not.exist
         });
     });
     describe('Storage', () => {
