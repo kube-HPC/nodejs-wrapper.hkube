@@ -5,7 +5,6 @@ const { dataAdapter } = require('@hkube/worker-data-adapter');
 const { once } = require('events');
 const messages = require('../lib/consts/messages');
 const AlgorithmWS = require('../lib/websocket/ws');
-const { assert } = require('console');
 
 const delay = d => new Promise(r => setTimeout(r, d));
 const cwd = process.cwd();
