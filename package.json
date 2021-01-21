@@ -20,6 +20,7 @@
   "author": "Hkube",
   "license": "MIT",
   "dependencies": {
+    "@hkube/consts": "^1.0.31",
     "@hkube/encoding": "^1.0.20",
     "@hkube/metrics": "^1.0.39",
     "@hkube/uid": "^1.0.4",

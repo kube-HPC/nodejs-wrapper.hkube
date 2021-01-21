@@ -55,7 +55,7 @@ describe('Tests', () => {
     describe('connectToWorker', () => {
         it('should set the ws url', async () => {
             const url = AlgorithmWS.createUrl(config);
-            expect(url).to.equal('ws://localhost:3000?encoding=bson&storage=v2');
+            expect(url).to.equal('ws://localhost:3000?encoding=bson&storage=v3');
         });
         it('should set the algorithm input', async () => {
             algorunner = new Algorunner();

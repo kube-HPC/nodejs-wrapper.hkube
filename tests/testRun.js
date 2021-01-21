@@ -18,7 +18,7 @@ describe('run', () => {
             }
         }
         algorunner = Algorunner.run(callbacks);
-        expect(algorunner._options.storageMode).to.eql('v2')
+        expect(algorunner._options.storageMode).to.eql('v3')
     });
     it('should send data through socket', async () => {
         const retData = {
@@ -32,7 +32,7 @@ describe('run', () => {
         }
 
         algorunner = Algorunner.run(callbacks);
-        expect(algorunner._options.storageMode).to.eql('v2')
+        expect(algorunner._options.storageMode).to.eql('v3')
 
         const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
 
