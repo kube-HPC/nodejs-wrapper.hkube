@@ -20,12 +20,20 @@ describe('streaming', () => {
     it.only('should init with stateless', async () => {
         const jobId = uuid();
 
+
         // stateful
+        let countStateful = 0;
+        const maxStateful = 50;
+
         const statefulCB = {
             start: (args, hkubeApi) => {
                 console.log('start');
-                setInterval(() => {
+                const interval = setInterval(() => {
                     hkubeApi.sendMessage({ data: 'hello stateless' });
+                    countStateful += 1;
+                    if (countStateful === maxStateful) {
+                        clearInterval(interval);
+                    }
                 }, 100)
             }
         }
@@ -50,9 +58,17 @@ describe('streaming', () => {
         await stateful._start();
 
         // stateless
+        let countStateless = 0;
+        const maxStateless = maxStateful;
+        let gotAll = false;
         const statelessCB = {
             start: (args) => {
-                console.log('start')
+                console.log('start');
+                countStateless += 1;
+                if (countStateless === maxStateless) {
+                    gotAll = true;
+                }
+                return 42;
             }
         }
 
@@ -68,6 +84,7 @@ describe('streaming', () => {
         await stateless._init(statelessData);
         stateless._start();
         await stateless._discoveryUpdate([{ nodeName: 'green', address: { host: 'localhost', port: 9022 }, type: 'Add' }]);
+        // TODO: WAIT FOR GOT ALL
         await delay(80000);
     });
     it('should init with stateful', async () => {
