@@ -21,7 +21,7 @@ const createConfig = () => {
 
 let Algorunner
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
     before(() => {
         Algorunner = global.Algorunner;
     });
