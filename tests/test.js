@@ -5,6 +5,7 @@ const { dataAdapter } = require('@hkube/worker-data-adapter');
 const { once } = require('events');
 const messages = require('../lib/consts/messages');
 const AlgorithmWS = require('../lib/websocket/ws');
+const { waitFor } = require('../lib/utils/waitFor');
 
 const delay = d => new Promise(r => setTimeout(r, d));
 const cwd = process.cwd();
@@ -108,34 +109,42 @@ describe('Tests', () => {
             expect(calls[2].args[0].command).to.equal(messages.outgoing.storing);
             expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
         });
-
+    });
+    describe('codeAPI', () => {
         it('should start algorithm via codeApi', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithmCode';
             algorunner.loadAlgorithm({ path });
             await algorunner.connectToWorker(config);
+            let connected = false;
+            algorunner._wsc.on('connection', () => {
+                connected = true;
+            })
+            await waitFor({ resolveCB: () => connected });
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
             const spy = sinon.spy(algorunner, "_sendCommand");
+            const spySend = sinon.spy(algorunner._wsc, "send");
             const data = {
                 jobId,
                 taskId,
                 input: [],
-                info: {},
                 nodeName: 'green'
             }
-            algorunner._wsc._sender.on(messages.outgoing.error, () => {
+            algorunner._wsc.on(messages.outgoing.error, () => {
                 expect.fail('got unexpected error')
             })
-            algorunner._wsc.emit(messages.incoming.initialize, data)
-            const algorithmStarted = once(algorunner._wsc._sender, messages.outgoing.startAlgorithmExecution)
-            algorunner._wsc.emit(messages.incoming.start, data)
-            const [algorithmData] = await algorithmStarted
-            const { execId } = algorithmData.data
-            await delay(1000);
-            algorunner._wsc.emit(messages.incoming.execAlgorithmDone, { execId })
-            await delay(1000);
+            algorunner._wsc.emit(messages.incoming.initialize, data);
+            algorunner._wsc.emit(messages.incoming.start, data);
+            await delay(500);
+            const [, , codeApiData] = spySend.getCalls();
+            const execId = codeApiData.args[0].data.execId;
+            const encodedData = dataAdapter.encodeHeaderPayload({ myValue: [1, 2, 3] });
+            const storageInfo = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), header: encodedData.header, data: encodedData.payload });
+            const response = { storageInfo };
+            algorunner._wsc.emit(messages.incoming.execAlgorithmDone, { execId, response })
+            await delay(500);
             const calls = spy.getCalls();
             expect(spy.callCount).to.equal(4);
             expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
@@ -144,7 +153,6 @@ describe('Tests', () => {
             expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
             expect(algorunner._hkubeApi._executions[execId]).to.not.exist
         });
-
         it('should start stored pipeline via codeApi', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
@@ -152,27 +160,36 @@ describe('Tests', () => {
             const entryPoint = 'indexPipe.js'
             algorunner.loadAlgorithm({ path, entryPoint });
             await algorunner.connectToWorker(config);
+            let connected = false;
+            algorunner._wsc.on('connection', () => {
+                connected = true;
+            })
+            await waitFor({ resolveCB: () => connected });
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
             const spy = sinon.spy(algorunner, "_sendCommand");
+            const spySend = sinon.spy(algorunner._wsc, "send");
             const data = {
                 jobId,
                 taskId,
                 input: [],
-                info: {},
                 nodeName: 'green'
             }
-            algorunner._wsc._sender.on(messages.outgoing.error, () => {
+            algorunner._wsc.on(messages.outgoing.error, () => {
                 expect.fail('got unexpected error')
             })
-            algorunner._wsc.emit(messages.incoming.initialize, data)
-            const algorithmStarted = once(algorunner._wsc._sender, messages.outgoing.startStoredSubPipeline)
-            algorunner._wsc.emit(messages.incoming.start, data)
-            const [algorithmData] = await algorithmStarted
-            const { subPipelineId } = algorithmData.data
-            await delay(1000);
-            algorunner._wsc.emit(messages.incoming.subPipelineDone, { subPipelineId })
-            await delay(1000);
+            algorunner._wsc.emit(messages.incoming.initialize, data);
+            algorunner._wsc.emit(messages.incoming.start, data);
+            await delay(500);
+            const [, , codeApiData] = spySend.getCalls();
+            const subPipelineId = codeApiData.args[0].data.subPipelineId;
+            const encodedBigData = dataAdapter.encodeHeaderPayload({ value: [1, 2, 3, 4, 5] });
+            const storageData = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), header: encodedBigData.header, data: encodedBigData.payload });
+            const encodedData = dataAdapter.encodeHeaderPayload([{ info: { path: storageData.path, isBigData: true } }]);
+            const storageInfo = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), header: encodedData.header, data: encodedData.payload });
+            const response = { storageInfo };
+            algorunner._wsc.emit(messages.incoming.subPipelineDone, { subPipelineId, response })
+            await delay(500);
             const calls = spy.getCalls();
             expect(spy.callCount).to.equal(4);
             expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
@@ -188,27 +205,31 @@ describe('Tests', () => {
             const entryPoint = 'indexRawPipe.js'
             algorunner.loadAlgorithm({ path, entryPoint });
             await algorunner.connectToWorker(config);
+            let connected = false;
+            algorunner._wsc.on('connection', () => {
+                connected = true;
+            })
+            await waitFor({ resolveCB: () => connected });
             const jobId = 'jobId:' + uuid();
             const taskId = 'taskId:' + uuid();
             const spy = sinon.spy(algorunner, "_sendCommand");
+            const spySend = sinon.spy(algorunner._wsc, "send");
             const data = {
                 jobId,
                 taskId,
                 input: [],
-                info: {},
                 nodeName: 'green'
             }
-            algorunner._wsc._sender.on(messages.outgoing.error, () => {
+            algorunner._wsc.on(messages.outgoing.error, () => {
                 expect.fail('got unexpected error')
             })
-            algorunner._wsc.emit(messages.incoming.initialize, data)
-            const algorithmStarted = once(algorunner._wsc._sender, messages.outgoing.startRawSubPipeline)
-            algorunner._wsc.emit(messages.incoming.start, data)
-            const [algorithmData] = await algorithmStarted
-            const { subPipelineId } = algorithmData.data
-            await delay(1000);
+            algorunner._wsc.emit(messages.incoming.initialize, data);
+            algorunner._wsc.emit(messages.incoming.start, data);
+            await delay(500);
+            const [, , codeApiData] = spySend.getCalls();
+            const subPipelineId = codeApiData.args[0].data.subPipelineId;
             algorunner._wsc.emit(messages.incoming.subPipelineDone, { subPipelineId })
-            await delay(1000);
+            await delay(500);
             const calls = spy.getCalls();
             expect(spy.callCount).to.equal(4);
             expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
@@ -304,7 +325,7 @@ describe('Tests', () => {
             expect(algorunner._input.input[0]).to.have.lengthOf(length)
             expect(algorunner._input.input[0][0]).to.eql(input[0]);
 
-        }).timeout(10000);
+        });
     });
 });
 
