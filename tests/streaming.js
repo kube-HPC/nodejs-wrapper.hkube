@@ -1,6 +1,9 @@
 const { expect } = require('chai');
 const { uuid } = require('@hkube/uid');
 const clone = require('lodash.clonedeep');
+const Logger = require('@hkube/logger');
+const config = require('../lib/config');
+const log = new Logger(config.serviceName, config.logger);
 const messages = require('../lib/consts/messages');
 const { waitFor } = require('../lib/utils/waitFor');
 const delay = d => new Promise(r => setTimeout(r, d));
@@ -21,7 +24,7 @@ const createConfig = () => {
 
 let Algorunner
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(() => {
         Algorunner = global.Algorunner;
     });

@@ -1,6 +1,9 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { uuid } = require('@hkube/uid');
+const Logger = require('@hkube/logger');
+const config = require('../lib/config');
+const log = new Logger(config.serviceName, config.logger);
 const messages = require('../lib/consts/messages');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const delay = d => new Promise(r => setTimeout(r, d));

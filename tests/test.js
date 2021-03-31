@@ -1,5 +1,8 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
+const Logger = require('@hkube/logger');
+const config = require('../lib/config');
+const log = new Logger(config.serviceName, config.logger);
 const { uuid } = require('@hkube/uid');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const { once } = require('events');
@@ -12,12 +15,11 @@ const cwd = process.cwd();
 const input = [[3, 6, 9, 1, 5, 4, 8, 7, 2], 'asc'];
 let algorunner;
 
-let config;
 let Algorunner
+
 describe('Tests', () => {
     before(() => {
         Algorunner = global.Algorunner;
-        config = global.config;
     });
     describe('sanity', () => {
         it('test AsyncFunction', () => {
