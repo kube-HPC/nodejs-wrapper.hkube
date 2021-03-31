@@ -1,15 +1,26 @@
-const EventEmitter = require('events');
+const http = require('http');
+const WebSocket = require('ws');
 
-class AlgorithmWS extends EventEmitter {
-    constructor(options){
-        super();
-        this._sender = new EventEmitter();
-        console.log(`debugMode: ${options.debugMode}`);
-    }
-    send(message) {
-        console.log(`sending message to worker: ${message.command}`);
-        this._sender.emit(message.command, message)
+class WsServer {
+    init(options) {
+        return new Promise((resolve, reject) => {
+            const server = http.createServer();
+            const socketServer = new WebSocket.Server({ server });
+
+            socketServer.on('connection', (socket, opt) => {
+                console.log('Connected!!!');
+            });
+            socketServer.on('error', (error) => {
+                console.error(`error ${error}`);
+            });
+            socketServer.on('listening', () => {
+                console.log('listening');
+            });
+            server.listen(options.port, () => {
+                return resolve();
+            });
+        });
     }
 }
 
-module.exports = AlgorithmWS;
+module.exports = new WsServer();
