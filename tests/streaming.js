@@ -254,7 +254,7 @@ describe('Streaming', () => {
         await waitFor({ resolveCB: () => count >= MAX });
         expect(count).to.gte(MAX);
     });
-    it.only('should stream stateful >> stateless', async () => {
+    it('should stream stateful >> stateless', async () => {
         const jobId = uuid();
         const configStateful = createConfig();
         const configStateless1 = createConfig();
@@ -386,7 +386,6 @@ describe('Streaming', () => {
                 && statelessMap.stateless2.green === MAX
                 && statelessMap.stateless2.yellow === MAX
         });
-        expect(countStateless).to.gte(MAX);
     });
     it('should init with stateful', async () => {
         const callbacks = {
