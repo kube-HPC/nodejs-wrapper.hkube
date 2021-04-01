@@ -254,7 +254,7 @@ describe('Streaming', () => {
         await waitFor({ resolveCB: () => count >= MAX });
         expect(count).to.gte(MAX);
     });
-    it('should stream stateful >> stateless', async () => {
+    it.only('should stream stateful >> stateless', async () => {
         const jobId = uuid();
         const configStateful = createConfig();
         const configStateless1 = createConfig();
@@ -264,8 +264,9 @@ describe('Streaming', () => {
         const MAX = 50;
         const statefulCB = {
             start: async (args, hkubeApi) => {
-                Array.from(Array(MAX).keys()).forEach(a => hkubeApi.sendMessage({ data: 'hello yellow' }, 'main'));
-                Array.from(Array(MAX).keys()).forEach(a => hkubeApi.sendMessage({ data: 'hello black' }, 'second'));
+                const keys = Array.from(Array(MAX).keys());
+                keys.forEach(a => hkubeApi.sendMessage({ data: 'hello yellow' }, 'main'));
+                keys.forEach(a => hkubeApi.sendMessage({ data: 'hello black' }, 'second'));
                 await delay(5000);
             }
         }
@@ -305,11 +306,14 @@ describe('Streaming', () => {
         expect(black).to.eql(MAX);
 
         // stateless 1
-        let countStateless = 0;
+        const statelessMap = {
+            stateless1: { green: 0 },
+            stateless2: { green: 0, yellow: 0 },
+        };
         const statelessCB1 = {
             start: (args) => {
-                countStateless += 1;
-                // throw new Error('ooopss');
+                const origin = args.streamInput.origin;
+                statelessMap.stateless1[origin] += 1;
                 return 42;
             }
         }
@@ -342,7 +346,8 @@ describe('Streaming', () => {
         // stateless 2
         const statelessCB2 = {
             start: (args) => {
-                countStateless += 1;
+                const origin = args.streamInput.origin;
+                statelessMap.stateless2[origin] += 1;
                 return 42;
             }
         }
@@ -375,7 +380,12 @@ describe('Streaming', () => {
         stateless2._start({});
         await delay(500);
 
-        await waitFor({ resolveCB: () => countStateless >= MAX });
+        await waitFor({
+            resolveCB: () =>
+                statelessMap.stateless1.green === MAX
+                && statelessMap.stateless2.green === MAX
+                && statelessMap.stateless2.yellow === MAX
+        });
         expect(countStateless).to.gte(MAX);
     });
     it('should init with stateful', async () => {
