@@ -1,11 +1,9 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const Logger = require('@hkube/logger');
 const config = require('../lib/config');
-const log = new Logger(config.serviceName, config.logger);
 const { uuid } = require('@hkube/uid');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
-const { once } = require('events');
+require('../index');
 const messages = require('../lib/consts/messages');
 const AlgorithmWS = require('../lib/websocket/ws');
 const { waitFor } = require('../lib/utils/waitFor');
