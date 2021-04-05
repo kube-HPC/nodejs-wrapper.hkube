@@ -113,7 +113,7 @@ describe('Tests', () => {
         });
     });
     describe('codeAPI', () => {
-        it('should start algorithm via codeApi', async () => {
+        it.only('should start algorithm via codeApi', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithmCode';
@@ -142,6 +142,10 @@ describe('Tests', () => {
             await delay(500);
             const [, , codeApiData] = spySend.getCalls();
             const execId = codeApiData.args[0].data.execId;
+            const storage = codeApiData.args[0].data.storage;
+            const storageInput = codeApiData.args[0].data.storageInput;
+            expect(Object.keys(storage).length).to.eq(3)
+            expect(storageInput.length).to.eq(3)
             const encodedData = dataAdapter.encodeHeaderPayload({ myValue: [1, 2, 3] });
             const storageInfo = await dataAdapter.setData({ jobId, taskId: 'taskId:' + uuid(), header: encodedData.header, data: encodedData.payload });
             const response = { storageInfo };
