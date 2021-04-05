@@ -113,7 +113,7 @@ describe('Tests', () => {
         });
     });
     describe('codeAPI', () => {
-        it.only('should start algorithm via codeApi', async () => {
+        it('should start algorithm via codeApi', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithmCode';
