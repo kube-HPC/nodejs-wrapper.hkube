@@ -2,7 +2,8 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const messages = require('../lib/consts/messages');
 
-let Algorunner
+let Algorunner;
+
 describe('debug mode', () => {
     before(() => {
         Algorunner = global.Algorunner;

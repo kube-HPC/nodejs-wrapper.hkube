@@ -1,9 +1,6 @@
 const { expect } = require('chai');
 const { uuid } = require('@hkube/uid');
 const clone = require('lodash.clonedeep');
-const Logger = require('@hkube/logger');
-const config = require('../lib/config');
-const log = new Logger(config.serviceName, config.logger);
 const messages = require('../lib/consts/messages');
 const { waitFor } = require('../lib/utils/waitFor');
 const delay = d => new Promise(r => setTimeout(r, d));
@@ -121,11 +118,11 @@ describe('Streaming', () => {
 
         await stateful1._init(statefulData1);
         await stateful2._init(statefulData2);
-        stateful2._discoveryUpdate([{ nodeName: 'green', address: { host: 'localhost', port: configStateful1.discovery.streaming.port }, type: 'Add' }]);
         stateful1._start({});
         stateful2._start({});
-        await delay(200);
 
+        stateful2._discoveryUpdate([{ nodeName: 'green', address: { host: 'localhost', port: configStateful1.discovery.streaming.port }, type: 'Add' }]);
+        await delay(1000);
         await stateful2._stop({ forceStop: false });
 
         await waitFor({ resolveCB: () => count >= 1 });
@@ -210,9 +207,8 @@ describe('Streaming', () => {
         // stateful 3
         const statefulCB3 = {
             start: async (args, hkubeApi) => {
-                hkubeApi.registerInputListener(({ payload, origin, sendMessage }) => {
+                hkubeApi.registerInputListener(({ payload, origin }) => {
                     count += 1;
-                    sendMessage({ data: payload });
                 });
                 hkubeApi.startMessageListening();
                 await delay(50000);
