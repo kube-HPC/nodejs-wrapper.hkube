@@ -60,7 +60,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: create pr in hkube
         run: |
-          npm i
+          npm install --no-package-lock --no-save @octokit/rest@^18.0.0
           npm run update-builder
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
