@@ -59,6 +59,8 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: create pr in hkube
-        run: npm run update-builder
+        run: |
+          npm i
+          npm run update-builder
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
