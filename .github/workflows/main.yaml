@@ -58,3 +58,7 @@ jobs:
           npm publish --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: create pr in hkube
+        run: npm run update-builder
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
