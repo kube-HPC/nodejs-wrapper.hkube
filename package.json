@@ -1,6 +1,6 @@
 {
   "name": "@hkube/nodejs-wrapper",
-  "version": "2.0.43",
+  "version": "2.0.44",
   "description": "nodejs wrapper for hkube",
   "main": "index.js",
   "scripts": {
