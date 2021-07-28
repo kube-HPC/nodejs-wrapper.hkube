@@ -202,7 +202,7 @@ describe('Tests', () => {
             expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
             expect(algorunner._hkubeApi._executions[subPipelineId]).to.not.exist
         });
-        it('should start raw pipeline via codeApi', async () => {
+        xit('should start raw pipeline via codeApi', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithmCode';
