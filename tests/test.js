@@ -202,7 +202,7 @@ describe('Tests', () => {
             expect(calls[3].args[0].command).to.equal(messages.outgoing.done);
             expect(algorunner._hkubeApi._executions[subPipelineId]).to.not.exist
         });
-        xit('should start raw pipeline via codeApi', async () => {
+        it('should start raw pipeline via codeApi', async () => {
             algorunner = new Algorunner();
             process.chdir(cwd);
             const path = '/tests/mocks/algorithmCode';
@@ -229,11 +229,11 @@ describe('Tests', () => {
             })
             algorunner._wsc.emit(messages.incoming.initialize, data);
             algorunner._wsc.emit(messages.incoming.start, data);
-            await delay(500);
+            await delay(400);
             const [, , codeApiData] = spySend.getCalls();
             const subPipelineId = codeApiData.args[0].data.subPipelineId;
             algorunner._wsc.emit(messages.incoming.subPipelineDone, { subPipelineId })
-            await delay(500);
+            await delay(400);
             const calls = spy.getCalls();
             expect(spy.callCount).to.equal(4);
             expect(calls[0].args[0].command).to.equal(messages.outgoing.initialized);
