@@ -9,7 +9,7 @@ on:
     branches: [master]
   push:
     branches: [master]
-    
+
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -49,6 +49,7 @@ jobs:
           git checkout -f -b version-branch
           npm version patch --no-commit-hooks -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
           git push origin version-branch:master --follow-tags
+          echo version=`node -p "require('./package.json').version` >> $GITHUB_ENV
       - uses: actions/setup-node@v1
         with:
           node-version: 14
@@ -58,9 +59,11 @@ jobs:
           npm publish --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: create pr in hkube
-        run: |
-          npm install --no-package-lock --no-save @octokit/rest@^18.0.0
-          npm run update-builder
+      - name: trigger artifacts registry
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/kube-HPC/artifacts-registry/dispatches
+          event_type: trigger
+          client_payload: '{"version": "${{env.version}}" , "wrapper": "nodejs" , "action": "dev-version" }'
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: "${{ secrets.GH_TOKEN }}"
