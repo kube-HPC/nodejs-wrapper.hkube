@@ -35,7 +35,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
   publish:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/invoke_trigger'
     needs: test
     runs-on: ubuntu-latest
     steps:
