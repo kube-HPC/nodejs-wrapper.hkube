@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [master]
   push:
-    branches: [master]
+    branches: [invoke_trigger]
 
   workflow_dispatch:
 
