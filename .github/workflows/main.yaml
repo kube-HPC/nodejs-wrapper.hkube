@@ -47,18 +47,10 @@ jobs:
       - name: version
         run: |
           git checkout -f -b version-branch
-          npm version patch --no-commit-hooks -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
-          git push origin version-branch:master --follow-tags
           echo version=`node -p "require('./package.json').version"` >> $GITHUB_ENV
       - uses: actions/setup-node@v1
         with:
           node-version: 14
-      - name: Publish
-        run: |
-          npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-          npm publish --ignore-scripts
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: trigger artifacts registry
         uses: octokit/request-action@v2.x
         with:
