@@ -325,7 +325,7 @@ describe('Tests', () => {
             }
             algorunner._wsc.emit(messages.incoming.initialize, data)
             algorunner._wsc.emit(messages.incoming.start, data)
-            await delay(2000);
+            await delay(3000);
             expect(algorunner._input.input[0]).to.have.lengthOf(length)
             expect(algorunner._input.input[0][0]).to.eql(input[0]);
 
