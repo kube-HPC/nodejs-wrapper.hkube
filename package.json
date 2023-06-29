@@ -22,7 +22,7 @@
   "dependencies": {
     "@hkube/consts": "^1.0.36",
     "@hkube/encoding": "^2.0.1",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
     "@hkube/uid": "^1.0.4",
     "@hkube/worker-data-adapter": "^1.1.1",
