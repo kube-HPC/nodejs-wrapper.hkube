@@ -27,7 +27,7 @@
     "@hkube/uid": "^1.0.4",
     "@hkube/worker-data-adapter": "^1.1.1",
     "lodash.clonedeep": "^4.5.0",
-    "ws": "^7.2.3"
+    "ws": "^7.5.9"
   },
   "devDependencies": {
     "@octokit/rest": "^18.0.0",
